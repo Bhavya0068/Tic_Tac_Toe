@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic-Tac-Toe Game</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Arial', sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #f4f9fa 0%, #171718 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: #fff;
+      }
+
+      h1 {
+        font-size: 3rem;
+        margin-bottom: 2rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      }
+
+      .game-info {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      #turn-display {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+
+      #score-card {
+        font-size: 1.2rem;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      .game {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .box {
+        width: 100px;
+        height: 100px;
+        border: none;
+        border-radius: 10px;
+        font-size: 3rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.8);
+        color: #bab8bd;
+      }
+
+      .box:hover {
+        background: rgba(255, 255, 255, 1);
+        transform: scale(1.05);
+      }
+
+      .box:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      #reset-btn, #new-btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      #reset-btn:hover, #new-btn:hover {
+        background-color: #45a049;
+      }
+
+      .msg-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+
+      #msg {
+        font-size: 3rem;
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+
+      .hide {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tic Tac Toe</h1>
+    <div class="game-info">
+      <p id="turn-display">Current turn: O</p>
+      <p id="score-card">Score - X: <span id="scoreX">0</span>, O: <span id="scoreO">0</span></p>
+    </div>
+    <div class="container">
+      <div class="game">
+        <button class="box"></button>
+        <button class="box"></button>
+        <button class="box"></button>
+        <button class="box"></button>
+        <button class="box"></button>
+        <button class="box"></button>
+        <button class="box"></button>
+        <button class="box"></button>
+        <button class="box"></button>
+      </div>
+      <button id="reset-btn">Reset Game</button>
+      <button id="reset-btn">New Game</button>
+    </div>
+    <div class="msg-container hide">
+      <p id="msg">Winner</p>
+      <button id="new-btn">Play Again!</button>
+    </div>
+    <script>
+        let boxes = document.querySelectorAll(".box");
+let resetBtn = document.querySelector("#reset-btn");
+let newGameBtn = document.querySelector("#new-btn");
+let msgContainer = document.querySelector(".msg-container");
+let msg = document.querySelector("#msg");
+let turnDisplay = document.querySelector("#turn-display");
+let scoreXElement = document.querySelector("#scoreX");
+let scoreOElement = document.querySelector("#scoreO");
+
+let turnO = true;
+let count = 0; 
+let scoreX = 0;
+let scoreO = 0;
+
+const winPatterns = [
+  [0, 1, 2],
+  [0, 3, 6],
+  [0, 4, 8],
+  [1, 4, 7],
+  [2, 5, 8],
+  [2, 4, 6],
+  [3, 4, 5],
+  [6, 7, 8],
+];
+
+const resetGame = () => {
+  turnO = true;
+  count = 0;
+  enableBoxes();
+  msgContainer.classList.add("hide");
+  updateTurnDisplay();
+};
+
+const updateTurnDisplay = () => {
+  turnDisplay.innerText = `Current turn: ${turnO ? 'O' : 'X'}`;
+};
+
+const updateScoreCard = () => {
+  scoreXElement.innerText = scoreX;
+  scoreOElement.innerText = scoreO;
+};
+
+boxes.forEach((box) => {
+  box.addEventListener("click", () => {
+    if (turnO) {
+      box.innerText = "O";
+      turnO = false;
+    } else {
+      box.innerText = "X";
+      turnO = true;
+    }
+    box.disabled = true;
+    count++;
+
+    let isWinner = checkWinner();
+
+    if (count === 9 && !isWinner) {
+      gameDraw();
+    }
+
+    updateTurnDisplay();
+  });
+});
+
+const gameDraw = () => {
+  msg.innerText = `Game was a Draw.`;
+  msgContainer.classList.remove("hide");
+  disableBoxes();
+};
+
+const disableBoxes = () => {
+  for (let box of boxes) {
+    box.disabled = true;
+  }
+};
+
+const enableBoxes = () => {
+  for (let box of boxes) {
+    box.disabled = false;
+    box.innerText = "";
+  }
+};
+
+const showWinner = (winner) => {
+  msg.innerText = `Congratulations, Winner is ${winner}`;
+  msgContainer.classList.remove("hide");
+  disableBoxes();
+  
+  if (winner === 'X') {
+    scoreX++;
+  } else {
+    scoreO++;
+  }
+  updateScoreCard();
+};
+
+const checkWinner = () => {
+  for (let pattern of winPatterns) {
+    let pos1Val = boxes[pattern[0]].innerText;
+    let pos2Val = boxes[pattern[1]].innerText;
+    let pos3Val = boxes[pattern[2]].innerText;
+
+    if (pos1Val != "" && pos2Val != "" && pos3Val != "") {
+      if (pos1Val === pos2Val && pos2Val === pos3Val) {
+        showWinner(pos1Val);
+        return true;
+      }
+    }
+  }
+  return false;
+};
+const newGame = () => {
+  resetGame();  
+  scoreX = 0;   
+  scoreO = 0;   
+  updateScoreCard(); 
+};
+
+newGameBtn.addEventListener("click", resetGame);
+resetBtn.addEventListener("click", resetGame);
+
+updateTurnDisplay();
+    </script>
+  </body>
+</html>
